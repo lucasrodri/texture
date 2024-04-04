@@ -11,6 +11,22 @@ Texture is a toolset designed for the production of scientific content. It uses 
 
 Feature requests can be made via the GitHub issues using a Feature request template. It will be assessed and costed, then scheduled accordingly in collaboration with the requesting organisation. Please feedback any problems with the product using the Bug template.
 
+## Run with Docker
+
+You can run Texture with Docker. This is the easiest way to get started.
+
+First, build the Docker image.
+
+```bash	
+$ docker build -t texture .
+```
+
+Then, run the Docker container.
+
+```bash
+$ docker run -d -p 4000:4000 texture
+```
+
 ## Install
 
 *You need Node 8.x installed on your system.*

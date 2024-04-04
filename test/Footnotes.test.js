@@ -2,11 +2,11 @@ import { test } from 'substance-test'
 import { DefaultDOMElement } from 'substance'
 import {
   openManuscriptEditor, getDocument, getSelectionState, setSelection, fixture,
-  openContextMenuAndFindTool, openMenuAndFindTool, getSelection, selectNode, getEditorSession
+  openContextMenuAndFindTool, openMenuAndFindTool, getSelection, selectNode
 } from './shared/integrationTestHelpers'
 import { importElement } from './shared/testHelpers'
 import setupTestApp from './shared/setupTestApp'
-import { getLabel } from 'substance-texture'
+import { getLabel } from '../index'
 
 const emptyLabel = '???'
 const manuscriptFootnoteSelector = '.sc-manuscript > .sc-manuscript-section.sm-footnotes .sc-footnote'
@@ -71,7 +71,7 @@ test('Footnotes: add a footnote while selection is inside a table cell', t => {
 test('Footnotes: add a footnote while selection is on a table cell', t => {
   let { app } = setupTestApp(t, fixture('cross-references'))
   let editor = openManuscriptEditor(app)
-  const editorSession = getEditorSession(editor)
+  const editorSession = editor.editorSession
   // set selection on table cell
   editorSession.setSelection({
     type: 'custom',

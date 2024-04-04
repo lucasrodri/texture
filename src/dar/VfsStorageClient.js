@@ -1,12 +1,11 @@
 import ManifestLoader from './ManifestLoader'
 
 export default class VfsStorageClient {
-  constructor (vfs, baseUrl, options = {}) {
+  constructor (vfs, baseUrl) {
     this.vfs = vfs
 
     // an url rom where the assets are served statically
     this.baseUrl = baseUrl
-    this.options = options
   }
 
   read (archiveId, cb) {
@@ -15,18 +14,17 @@ export default class VfsStorageClient {
   }
 
   write (archiveId, data, cb) { // eslint-disable-line
-    if (this.options.writable) {
-      _updateRawArchive(this.vfs, archiveId, data, this.baseUrl)
-    }
+    _updateRawArchive(this.vfs, archiveId, data, this.baseUrl)
     cb(null, true)
   }
 }
 
 function _readRawArchive (fs, archiveId, baseUrl = '') {
   let manifestXML = fs.readFileSync(`${archiveId}/manifest.xml`)
-  let manifest = ManifestLoader.load(manifestXML)
-  let docs = manifest.getDocumentNodes()
-  let assets = manifest.getAssetNodes()
+  let manifestSession = ManifestLoader.load(manifestXML)
+  let manifest = manifestSession.getDocument()
+  let docs = manifest.findAll('documents > document')
+  let assets = manifest.findAll('assets > asset')
   let rawArchive = {
     version: '0',
     resources: {
@@ -38,7 +36,7 @@ function _readRawArchive (fs, archiveId, baseUrl = '') {
   }
 
   docs.forEach(entry => {
-    let path = entry.path
+    let path = entry.attr('path')
     if (fs.existsSync(`${archiveId}/${entry.path}`)) {
       let content = fs.readFileSync(`${archiveId}/${entry.path}`)
       rawArchive.resources[path] = {
@@ -50,7 +48,7 @@ function _readRawArchive (fs, archiveId, baseUrl = '') {
     }
   })
   assets.forEach(asset => {
-    let path = asset.path
+    let path = asset.attr('path')
     // TODO: we could store other stats and maybe mime-types in VFS
     rawArchive.resources[path] = {
       encoding: 'url',

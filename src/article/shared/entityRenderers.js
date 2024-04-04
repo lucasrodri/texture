@@ -695,9 +695,95 @@ function webpageRenderer ($$, entityId, entityDb, exporter) {
   return fragments
 }
 
-function entityRenderer ($$, entityId, entityDb, options = {}) {
-  let entity = entityDb.get(entityId)
-  return entity.render(options)
+/* This is used for authors and editors */
+function personRenderer ($$, entityId, entityDb, options = {}) {
+  let { prefix, suffix, givenNames, surname } = entityDb.get(entityId)
+  if (options.short) {
+    givenNames = _getInitials(givenNames)
+  }
+  let result = []
+  if (prefix) {
+    result.push(prefix, ' ')
+  }
+  result.push(
+    givenNames,
+    ' ',
+    surname
+  )
+  if (suffix) {
+    result.push(' (', suffix, ')')
+  }
+  return result
+}
+
+function groupRenderer ($$, entityId, entityDb) {
+  let { name } = entityDb.get(entityId)
+  return [ name ]
+}
+
+// function personRenderer($$, entityId, entityDb, options = {}) {
+//   let { prefix, suffix, givenNames, surname } = entityDb.get(entityId)
+function refContribRenderer ($$, entityId, entityDb, options = {}) {
+  let { givenNames, name } = entityDb.get(entityId)
+
+  let result = [
+    name
+  ]
+
+  if (givenNames) {
+    if (options.short) {
+      givenNames = _getInitials(givenNames)
+    }
+
+    result.push(
+      ' ',
+      givenNames
+    )
+  }
+  return result
+}
+
+function organisationRenderer ($$, entityId, entityDb, options = {}) {
+  let org = entityDb.get(entityId)
+  return org.render(options)
+}
+
+function funderRenderer ($$, entityId, entityDb, options = {}) {
+  let { awardId, institution } = entityDb.get(entityId)
+  let result = [ institution ]
+  if (!options.short) {
+    if (awardId) {
+      result.push(', ', awardId)
+    }
+  }
+  return result
+}
+
+function keywordRenderer ($$, entityId, entityDb, options = {}) {
+  let { category, name } = entityDb.get(entityId)
+  let result = [ name ]
+  if (!options.short) {
+    if (category) {
+      result.push(', ', category)
+    }
+  }
+  return result
+}
+
+function subjectRenderer ($$, entityId, entityDb, options = {}) {
+  let { category, name } = entityDb.get(entityId)
+  let result = [ name ]
+  if (!options.short) {
+    if (category) {
+      result.push(', ', category)
+    }
+  }
+  return result
+}
+
+function customAbstractRenderer ($$, entityId, entityDb, options = {}) {
+  let customAbstract = entityDb.get(entityId)
+  return customAbstract.render(options)
 }
 
 /*
@@ -705,26 +791,26 @@ function entityRenderer ($$, entityId, entityDb, options = {}) {
 */
 export default {
   'article-ref': _delegate(articleRenderer),
-  'person': _delegate(entityRenderer),
-  'group': _delegate(entityRenderer),
+  'person': _delegate(personRenderer),
+  'group': _delegate(groupRenderer),
   'book-ref': _delegate(bookRenderer),
   'chapter-ref': _delegate(chapterRenderer),
   'journal-article-ref': _delegate(journalArticleRenderer),
   'conference-paper-ref': _delegate(conferencePaperRenderer),
   'report-ref': _delegate(reportRenderer),
-  'affiliation': _delegate(entityRenderer),
-  'funder': _delegate(entityRenderer),
+  'organisation': _delegate(organisationRenderer),
+  'funder': _delegate(funderRenderer),
   'data-publication-ref': _delegate(dataPublicationRenderer),
   'magazine-article-ref': _delegate(magazineArticleRenderer),
   'newspaper-article-ref': _delegate(newspaperArticleRenderer),
   'software-ref': _delegate(softwareRenderer),
   'thesis-ref': _delegate(thesisRenderer),
   'webpage-ref': _delegate(webpageRenderer),
-  'keyword': _delegate(entityRenderer),
-  'ref-contrib': _delegate(entityRenderer),
+  'keyword': _delegate(keywordRenderer),
+  'ref-contrib': _delegate(refContribRenderer),
   'patent-ref': _delegate(patentRenderer),
-  'subject': _delegate(entityRenderer),
-  'custom-abstract': _delegate(entityRenderer)
+  'subject': _delegate(subjectRenderer),
+  'custom-abstract': _delegate(customAbstractRenderer)
 }
 
 /*
@@ -734,7 +820,7 @@ function _renderAuthors ($$, authors, entityDb) {
   let fragments = []
   authors.forEach((refContribId, i) => {
     fragments = fragments.concat(
-      entityRenderer($$, refContribId, entityDb, { short: true })
+      refContribRenderer($$, refContribId, entityDb, { short: true })
     )
     if (i < authors.length - 1) {
       fragments.push(', ')
@@ -819,6 +905,12 @@ function _renderPublisherPlace ($$, place, publisher) {
   } else {
     return ''
   }
+}
+
+function _getInitials (givenNames) {
+  return givenNames.split(' ').map(part => {
+    return part[0] ? part[0].toUpperCase() : ''
+  }).join('')
 }
 
 function _delegate (fn) {

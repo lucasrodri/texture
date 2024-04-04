@@ -1,7 +1,7 @@
-import ManifestDocument from './ManifestDocument'
+import loadManifest from './loadManifest'
 
 export default {
   load (manifestXml) {
-    return ManifestDocument.fromXML(manifestXml)
+    return loadManifest(manifestXml)
   }
 }

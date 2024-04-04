@@ -1,5 +1,5 @@
 import { test } from 'substance-test'
-import { NumberedLabelGenerator, FigureLabelGenerator } from 'substance-texture'
+import { NumberedLabelGenerator, FigureLabelGenerator } from '../index'
 
 test('LabelGenerator: numbered labels', t => {
   let generator = new NumberedLabelGenerator({

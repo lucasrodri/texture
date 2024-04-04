@@ -4,8 +4,8 @@ import {
   setCursor, openManuscriptEditor, PseudoFileEvent, getEditorSession,
   loadBodyFixture, getDocument, setSelection, LOREM_IPSUM,
   openContextMenuAndFindTool, openMenuAndFindTool, clickUndo,
-  isToolEnabled, selectNode, getSelection, selectRange,
-  deleteSelection, createSurfaceEvent, canSwitchTextTypeTo, switchTextType, ensureValidJATS, insertText, executeCommand, getModalEditorSession
+  isToolEnabled, createKeyEvent, selectNode, getSelection, selectRange,
+  getCurrentViewName, deleteSelection, createSurfaceEvent, canSwitchTextTypeTo, switchTextType
 } from './shared/integrationTestHelpers'
 import setupTestApp from './shared/setupTestApp'
 import { doesNotThrowInNodejs, DOMEvent, ClipboardEventData } from './shared/testHelpers'
@@ -14,22 +14,18 @@ import { doesNotThrowInNodejs, DOMEvent, ClipboardEventData } from './shared/tes
 // TODO: test save button
 // TODO: test error case for loading in GraphicComponent and InlineGraphicCOmponent
 // TODO: test automatic label generation for block-formulas
-// TODO: add a test using AddSupplementaryFileWorkflow
-// TODO: test removing an author via metadata modal
 
 const EMPTY_P = `<p id="p1"></p>`
 
 test('ManuscriptEditor: add inline graphic', t => {
-  let { app, archive } = setupTestApp(t, LOREM_IPSUM)
+  let { app } = setupTestApp(t, LOREM_IPSUM)
   let editor = openManuscriptEditor(app)
   setCursor(editor, 'p-2.content', 3)
   let insertInlineGraphicTool = openMenuAndFindTool(editor, 'insert', '.sc-insert-inline-graphic-tool')
   // Trigger onFileSelect() directly
-  insertInlineGraphicTool.onFileSelect(new PseudoFileEvent('test.png'))
+  insertInlineGraphicTool.onFileSelect(new PseudoFileEvent())
   let inlineGraphic = editor.find('[data-id=p-2] .sc-inline-node.sm-inline-graphic')
   t.notNil(inlineGraphic, 'there should be an inline-graphic now')
-  ensureValidJATS(t, app)
-  t.ok(archive.hasAsset('test.png'), 'the archive should contain the new asset')
   t.end()
 })
 
@@ -49,25 +45,24 @@ const PARAGRAPH_WITH_INLINE_FORMULA = `<p id="p1">abc <inline-formula id="if-1" 
 test('ManuscriptEditor: edit inline formula', t => {
   let { app } = setupTestApp(t, { archiveId: 'blank' })
   let editor = openManuscriptEditor(app)
-  loadBodyFixture(editor, PARAGRAPH_WITH_INLINE_FORMULA)
-
-  const getInlineFormulaEditor = () => editor.find('.sc-inline-formula-editor')
-
   let doc = getDocument(editor)
-  let inlineFormulaNode = doc.get('if-1')
-  let originalContent = inlineFormulaNode.content
-
+  const formulaContent = '\\sqrt(13)'
+  const changedFormulaContent = '\\sqrt(14)'
+  const getFormulaInput = () => editor.find('.sc-edit-math-tool .sc-input')
+  loadBodyFixture(editor, PARAGRAPH_WITH_INLINE_FORMULA)
   // Set selection to open prompt editor
   setSelection(editor, 'p1.content', 4, 5)
-  t.ok(Boolean(getInlineFormulaEditor()), 'the inline formula editor should be shown')
-
-  setCursor(editor, `${inlineFormulaNode.id}.content`, inlineFormulaNode.content.length)
-  insertText(editor, '+1')
-  t.equal(inlineFormulaNode.content, originalContent + '+1', 'content should have been updated')
-
-  // setting the selection somewhere else should close the editor
+  const formulaInput = getFormulaInput()
+  t.notNil(formulaInput, 'there should be a math input inside popup')
+  t.equal(formulaInput.val(), formulaContent, 'should equal to: ' + formulaContent)
+  // Change the value
+  formulaInput.val(changedFormulaContent)
+  formulaInput._onChange()
+  // Change selection to close editor
   setSelection(editor, 'p1.content', 2)
-  t.notOk(Boolean(getInlineFormulaEditor()), 'the inline formula editor should be hidden now')
+  t.isNil(getFormulaInput(), 'there should be no math input now')
+  let inlineFormulaNode = doc.get('if-1')
+  t.equal(inlineFormulaNode.content, changedFormulaContent, 'should equal to: ' + changedFormulaContent)
   t.end()
 })
 
@@ -89,33 +84,37 @@ const PARAGRAPH_AND_BLOCK_FORMULA = `<p id="p1">abcdef</p>
 </disp-formula>
 `
 
-test('ManuscriptEditor: edit a formula', t => {
+test('ManuscriptEditor: edit block formula', t => {
   let { app } = setupTestApp(t, { archiveId: 'blank' })
   let editor = openManuscriptEditor(app)
-  loadBodyFixture(editor, PARAGRAPH_AND_BLOCK_FORMULA)
-
-  const getFormulaComponent = () => editor.find('.sc-block-formula')
-  const getFormulaEditor = () => editor.find('.sc-block-formula-editor')
-
   let doc = getDocument(editor)
-  let node = doc.get('df-1')
-  let originalContent = node.content
-  let blockFormulaComp = getFormulaComponent()
-
+  const formulaContent = '\\sqrt(13)'
+  const formulaContentV2 = '\\sqrt(14)'
+  const formulaContentV3 = '\\sqrt(14)'
+  const selectFormula = () => {
+    selectNode(editor, 'df-1')
+  }
+  const getFormulaInput = () => editor.find('.sc-edit-math-tool .sc-text-area')
+  loadBodyFixture(editor, PARAGRAPH_AND_BLOCK_FORMULA)
   // Set selection to open prompt editor
-  selectNode(editor, 'df-1')
-  t.ok(Boolean(getFormulaEditor()), 'the formula editor should be shown')
-
-  setCursor(editor, `${node.id}.content`, node.content.length)
-  insertText(editor, '+1')
-  t.equal(node.content, originalContent + '+1', 'content should have been updated')
-
-  insertText(editor, '^')
-  t.ok(blockFormulaComp.el.hasClass('sm-error'), 'formula should show an error now')
-
-  // setting the selection somewhere else should close the editor
+  selectFormula()
+  let formulaInput = getFormulaInput()
+  t.notNil(formulaInput, 'there should be an input inside popup')
+  t.equal(formulaInput.val(), formulaContent, 'input should show formula')
+  // Change the value
+  formulaInput.val(formulaContentV2)
+  formulaInput._onChange()
+  // Change selection to close editor
   setSelection(editor, 'p1.content', 2)
-  t.notOk(Boolean(getFormulaEditor()), 'the formula editor should be hidden now')
+  t.isNil(getFormulaInput(), 'there should be no math input now')
+  let blockFormulaNode = doc.get('df-1')
+  t.equal(blockFormulaNode.content, formulaContentV2, 'formula should have been updated')
+  // Submitting a change via CommandOrControl+Enter
+  selectFormula()
+  formulaInput = getFormulaInput()
+  formulaInput.val(formulaContentV3)
+  formulaInput.emit('keyevent', createKeyEvent('CommandOrControl+Enter'))
+  t.equal(blockFormulaNode.content, formulaContentV3, 'formula should have been updated')
   t.end()
 })
 
@@ -472,7 +471,7 @@ test('ManuscriptEditor: increasing and decreasing level of list items via tool',
   t.end()
 })
 
-const P_WITH_EXTERNAL_LINK = `<p id="p1">This is a <ext-link xmlns:xlink="http://www.w3.org/1999/xlink" id="link" xlink:href="test">link</ext-link></p>`
+const P_WITH_EXTERNAL_LINK = `<p id="p1">This is a <ext-link xmlns:xlink="http://www.w3.org/1999/xlink" id="link" xlink:href="substance.io">link</ext-link></p>`
 
 test('ManuscriptEditor: editing an external link', t => {
   let { app } = setupTestApp(t, { archiveId: 'blank' })
@@ -480,17 +479,19 @@ test('ManuscriptEditor: editing an external link', t => {
   let doc = getDocument(editor)
   loadBodyFixture(editor, P_WITH_EXTERNAL_LINK)
 
-  function _getHrefEditor () { return editor.find('.sc-external-link-editor .se-href') }
+  function _getUrlInput () { return editor.find('.sc-edit-external-link-tool > input') }
+  function _getUrlInputValue () { return _getUrlInput().el.val() }
+  function _setUrlInputValue (val) { return _getUrlInput().el.val(val) }
 
   let link = doc.get('link')
   setCursor(editor, 'p1.content', link.start.offset + 1)
-  // there should now be the popup open
-  // now put a cursor there and type
-  let hrefEditor = _getHrefEditor()
-  t.ok(Boolean(hrefEditor), 'href editor should be shown')
-  setCursor(editor, `${link.id}.href`, 0)
-  insertText(editor, 'foo')
-  t.equal(link.href, 'footest', 'the link should have been updated')
+
+  t.equal(_getUrlInputValue(), link.href, 'url input field should show current href value')
+  _setUrlInputValue('foo')
+  t.doesNotThrow(() => {
+    _getUrlInput()._onChange()
+  }, 'triggering href update should not throw')
+  t.equal(link.href, 'foo', '.. and the link should have been updated')
   t.end()
 })
 
@@ -595,7 +596,7 @@ test('ManuscriptEditor: select all', t => {
   let { app } = setupTestApp(t, LOREM_IPSUM)
   let editor = openManuscriptEditor(app)
   setCursor(editor, 'p-1.content', 1)
-  executeCommand(editor, 'select-all')
+  editor._executeCommand('select-all')
   let sel = getSelection(editor)
   t.deepEqual({
     type: sel.type,
@@ -609,31 +610,33 @@ test('ManuscriptEditor: select all', t => {
   t.end()
 })
 
-const ENTITY_SPECS = {
-  'author': {
+const CUSTOM_SELECTIONS = [
+  {
     'type': 'author',
     'itemSelector': '.sc-authors-list .se-contrib',
     'editToolSelector': '.sm-edit-author',
-    'property': 'surname'
+    'selectionType': 'author',
+    'metadataType': 'person'
   },
-  'reference': {
+  {
     'type': 'reference',
     'itemSelector': '.sc-reference-list .sc-reference',
     'editToolSelector': '.sm-edit-reference',
-    'property': 'title'
+    'selectionType': 'reference',
+    'metadataType': 'webpage-ref'
   }
-}
+]
+CUSTOM_SELECTIONS.forEach(spec => {
+  test(`ManuscriptEditor: ${spec.type} selection`, t => {
+    testCustomSelection(t, spec)
+  })
 
-test(`ManuscriptEditor: select author`, t => {
-  testEntitySelection(t, ENTITY_SPECS['author'])
+  test(`ManuscriptEditor: edit ${spec.type} tool`, t => {
+    testCustomSelectionEditTool(t, spec)
+  })
 })
 
-test(`ManuscriptEditor: select reference`, t => {
-  testEntitySelection(t, ENTITY_SPECS['reference'])
-})
-
-function testEntitySelection (t, spec) {
-  // TODO: use a more minimal fixture
+function testCustomSelection (t, spec) {
   let { app } = setupTestApp(t, { archiveId: 'kitchen-sink' })
   let editor = openManuscriptEditor(app)
   const getFirstItem = () => editor.find(spec.itemSelector)
@@ -642,37 +645,27 @@ function testEntitySelection (t, spec) {
   getFirstItem().el.click()
   t.ok(getFirstItem().hasClass('sm-selected'), 'first item must be visually selected')
   t.equal(getSelection(editor).type, 'custom', 'selection must be of custom type')
+  t.equal(getSelection(editor).customType, spec.selectionType, `selection must be of ${spec.selectionType} custom type`)
   setSelection(editor, 'p-2.content', 0)
   t.notOk(getFirstItem().hasClass('sm-selected'), 'visual selection most be gone')
   t.notEqual(getSelection(editor).type, 'custom', 'selection must be of different type')
   t.end()
 }
 
-test(`ManuscriptEditor: edit author`, t => {
-  testEditEntity(t, ENTITY_SPECS['author'])
-})
-
-test(`ManuscriptEditor: edit reference`, t => {
-  testEditEntity(t, ENTITY_SPECS['reference'])
-})
-
-function testEditEntity (t, spec) {
-  // TODO: use a more minimal fixture
+function testCustomSelectionEditTool (t, spec) {
   let { app } = setupTestApp(t, { archiveId: 'kitchen-sink' })
   let editor = openManuscriptEditor(app)
-  const _getFirstItem = () => editor.find(spec.itemSelector)
+  const getFirstItem = () => editor.find(spec.itemSelector)
   const _canEdit = () => isToolEnabled(editor, 'context-tools', spec.editToolSelector)
   const _edit = () => openMenuAndFindTool(editor, 'context-tools', spec.editToolSelector).click()
 
-  t.notOk(_canEdit(), 'editing should be disabled wihtout selection')
-  _getFirstItem().el.click()
+  t.equal(getCurrentViewName(editor), 'manuscript', `should be in manuscript view`)
+  t.notOk(_canEdit(), 'edit author should be disabled wihtout selection')
+  getFirstItem().el.click()
   t.ok(_canEdit(), 'edit author should be enabled')
   _edit()
 
-  let modalEditorSession = getModalEditorSession(editor)
-  t.notNil(modalEditorSession, 'there should be a modal editor')
-  let selState = modalEditorSession.editorState.selectionState
-  t.equal(selState.property.name, spec.property, `the first property should be focused`)
+  t.equal(getCurrentViewName(editor), 'metadata', `should be in metadata view now`)
   t.end()
 }
 
@@ -739,81 +732,6 @@ test('ManuscriptEditor: copy and pasting list items', t => {
   let list = doc.get('list')
   t.equal(list.getLength(), 8, 'altogether there should be 8 items')
   t.deepEqual(list.resolve('items').map(item => item.level), [1, 2, 2, 1, 2, 2, 2, 2], '.. with correct levels')
-  t.end()
-})
-
-const TWO_FIGURES = `
-<fig id="fig1">
-  <graphic />
-  <caption />
-</fig>
-<p id="p1">This is a reference to <xref id="fig1-ref" ref-type="fig" rid="fig1" />.</p>
-<fig id="fig2">
-  <graphic />
-  <caption />
-</fig>
-<p id="empty"></p>
-`
-
-test('ManuscriptEditor: cut and pasting a figure', t => {
-  let { app } = setupTestApp(t, { archiveId: 'blank' })
-  let editor = openManuscriptEditor(app)
-  let bodySurface = _getBodySurface(editor)
-  loadBodyFixture(editor, TWO_FIGURES)
-
-  // HACK: ATM, we are wrapping every fig into a fig-group internally, using a '_' as prefix for the id of the group
-  // TODO: we should rethink if this is really what we want. IMO there is no advantage in having an implicit conversion
-  // with respect to collaboration. Maybe it is better to treat FigureGroups as an extra thing.
-  selectNode(editor, '_fig-1')
-  let pasteEvent = new DOMEvent({ clipboardData: new ClipboardEventData() })
-  bodySurface._onCut(pasteEvent)
-  setCursor(editor, 'empty.content', 0)
-  bodySurface._onPaste(pasteEvent)
-
-  const expectedLabel = 'Figure 2'
-  let fig1Comp = bodySurface.find('[data-id="fig1"]')
-  let fig1Label = fig1Comp.find('.sc-label')
-  let refComp = bodySurface.find('[data-id="fig1-ref"]')
-  t.ok(Boolean(fig1Comp), 'figure 1 should be displayed')
-  t.equal(fig1Label.text(), expectedLabel, 'figure should have been labeled automatically')
-  t.equal(refComp.text(), expectedLabel, 'figure reference should have been relabeled automatically')
-
-  t.end()
-})
-
-const TABLE_AND_REF = `
-  <table-wrap id="table1">
-    <table>
-    </table>
-  </table-wrap>
-  <p id="p1">This is a reference to <xref id="table1-ref" ref-type="table" rid="table1" />.</p>
-  <table-wrap id="table2">
-    <table>
-    </table>
-  </table-wrap>
-  <p id="empty"></p>
-  `
-
-test('ManuscriptEditor: cut and pasting a table', t => {
-  let { app } = setupTestApp(t, { archiveId: 'blank' })
-  let editor = openManuscriptEditor(app)
-  let bodySurface = _getBodySurface(editor)
-  loadBodyFixture(editor, TABLE_AND_REF)
-
-  selectNode(editor, 'table1')
-  let pasteEvent = new DOMEvent({ clipboardData: new ClipboardEventData() })
-  bodySurface._onCut(pasteEvent)
-  setCursor(editor, 'empty.content', 0)
-  bodySurface._onPaste(pasteEvent)
-
-  const expectedLabel = 'Table 2'
-  let table1Comp = bodySurface.find('[data-id="table1"]')
-  let table1Label = table1Comp.find('.sc-label')
-  let refComp = bodySurface.find('[data-id="table1-ref"]')
-  t.ok(Boolean(table1Comp), 'table should be displayed')
-  t.equal(table1Label.text(), expectedLabel, 'table should have been labeled automatically')
-  t.equal(refComp.text(), expectedLabel, 'table reference should have been relabeled automatically')
-
   t.end()
 })
 

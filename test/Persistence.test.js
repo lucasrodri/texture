@@ -1,7 +1,7 @@
 /* global vfs */
 import { platform, AbstractEditorSession, DefaultDOMElement } from 'substance'
 import { test } from 'substance-test'
-import { TextureArchive, checkArchive } from 'substance-texture'
+import { TextureArchive, checkArchive } from '../index'
 import { getMountPoint, diff } from './shared/testHelpers'
 import { applyNOP, toUnix, setupTestVfs, openManuscriptEditor, PseudoFileEvent, getEditorSession, setSelection } from './shared/integrationTestHelpers'
 import setupTestApp from './shared/setupTestApp'
@@ -35,9 +35,8 @@ function InvariantLoadSaveTest (archiveId, memory) {
   _test(`Persistence: loading and saving article ${archiveId}`, t => {
     // create a vfs where we can store the data during save without harming the global vfs instance
     let testVfs = setupTestVfs(vfs, archiveId)
-    let { app, archive, manuscript } = setupTestApp(t, {
+    let { app, archive, manuscriptSession } = setupTestApp(t, {
       vfs: testVfs,
-      writable: true,
       archiveId
     })
 
@@ -48,7 +47,7 @@ function InvariantLoadSaveTest (archiveId, memory) {
     })
 
     // trigger a save
-    _NOP({ manuscript })
+    _NOP({ manuscriptSession })
 
     // Note: with VFS these calls are actually not asynchronous, i.e. calling back instantly
     app._save(err => {
@@ -109,13 +108,12 @@ function LoadSaveShouldNotThrow (archiveId, title, change) {
   test(`Persistence: ${title}`, t => {
     // create a vfs where we can store the data during save without harming the global vfs instance
     let testVfs = setupTestVfs(vfs, archiveId)
-    let { app, archive, manuscript } = setupTestApp(t, {
+    let { app, archive, manuscriptSession } = setupTestApp(t, {
       vfs: testVfs,
-      writeable: true,
       archiveId
     })
     // change the content
-    change({ app, archive, manuscript })
+    change({ app, archive, manuscriptSession })
     // trigger a save
     // Note: with VFS these calls are actually not asynchronous, i.e. calling back instantly
     app._save(err => {
@@ -133,8 +131,8 @@ function LoadSaveShouldNotThrow (archiveId, title, change) {
   })
 }
 
-function _NOP ({ manuscript }) {
-  applyNOP(new AbstractEditorSession('manuscript', manuscript))
+function _NOP ({ manuscriptSession }) {
+  applyNOP(new AbstractEditorSession('manuscript', manuscriptSession))
 }
 
 function _INSERT_FIGURE ({ app }) {

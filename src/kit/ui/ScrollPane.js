@@ -26,6 +26,11 @@ export default class ScrollPane extends AbstractScrollPane {
   didMount () {
     super.didMount()
 
+    // TODO: these should come from AppState
+    if (this.refs.scrollbar && this.props.highlights) {
+      this.props.highlights.on('highlights:updated', this.onHighlightsUpdated, this)
+    }
+
     if (this.refs.scrollbar) {
       if (platform.inBrowser) {
         this.domObserver = new window.MutationObserver(this._onContentChanged.bind(this))
@@ -42,6 +47,9 @@ export default class ScrollPane extends AbstractScrollPane {
   dispose () {
     super.dispose()
 
+    if (this.props.highlights) {
+      this.props.highlights.off(this)
+    }
     if (this.domObserver) {
       this.domObserver.disconnect()
     }
@@ -117,12 +125,22 @@ export default class ScrollPane extends AbstractScrollPane {
     }
   }
 
+  onHighlightsUpdated (highlights) {
+    this.refs.scrollbar.extendProps({
+      highlights: highlights
+    })
+  }
+
   onScroll () {
     let scrollPos = this.getScrollPosition()
     let scrollable = this.refs.scrollable
     if (this.props.onScroll) {
       this.props.onScroll(scrollPos, scrollable)
     }
+    // FIXME: bring back TOC activeEntry
+    // if (this.props.tocProvider) {
+    //   this.props.tocProvider.markActiveEntry(this)
+    // }
     this.emit('scroll', scrollPos, scrollable)
   }
 

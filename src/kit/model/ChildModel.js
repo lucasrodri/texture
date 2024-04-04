@@ -4,7 +4,7 @@ export default class ChildModel extends ValueModel {
   constructor (api, path, targetTypes) {
     super(api, path)
 
-    this._targetTypes = targetTypes
+    this._targetTypes = new Set(targetTypes)
   }
 
   get type () { return 'child' }

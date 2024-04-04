@@ -1,4 +1,4 @@
-import { DefaultNodeComponent } from '../components'
+import DefaultNodeComponent from '../shared/DefaultNodeComponent'
 import AbstractTypeEditor from './AbstractTypeEditor'
 import mapWithChangedOrder from '../shared/mapWithChangedOrder'
 

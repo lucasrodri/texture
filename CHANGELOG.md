@@ -1,13 +1,3 @@
-## Texture 3.0
-
-- Plugin framework
-- Authoring interface is primary
-- Source code restructured
-
-## Before
-
-Not available.
-
 ## Preview 2
 
 - List support (ordered and unordered as well as mixed)

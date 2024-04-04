@@ -38,11 +38,8 @@ export default class ValueModel {
   }
 
   setValue (val) {
-    // TODO this should go into API
-    let api = this._api
-    api.getEditorSession().transaction(tx => {
+    this._api.getEditorSession().transaction(tx => {
       tx.set(this._path, val)
-      tx.setSelection(api._createValueSelection(this._path))
     })
   }
 

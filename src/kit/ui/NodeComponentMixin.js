@@ -5,13 +5,13 @@ export default function (Component) {
     didMount () {
       super.didMount()
       const node = this._getNode()
-      this.context.editorState.addObserver(['document'], this._onNodeUpdate, this, { document: { path: [node.id] }, stage: 'render' })
+      this.context.appState.addObserver(['document'], this._onNodeUpdate, this, { document: { path: [node.id] }, stage: 'render' })
     }
 
     dispose () {
       super.dispose()
 
-      this.context.editorState.off(this)
+      this.context.appState.off(this)
     }
 
     _getNode () {

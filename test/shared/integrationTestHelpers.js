@@ -1,14 +1,11 @@
-/* global vfs, TEST_VFS, Blob, Response */
+/* global vfs, TEST_VFS, Blob */
 import {
   ObjectOperation, DocumentChange, isString, isArray, platform,
   Component, DefaultDOMElement, keys, getKeyForPath
 } from 'substance'
-import {
-  TextureWebApp, createJatsImporter, DEFAULT_JATS_SCHEMA_ID, DEFAULT_JATS_DTD,
-  TextureJATS, Vfs, VfsStorageClient
-} from 'substance-texture'
+import { TextureWebApp, VfsStorageClient, createJatsImporter } from '../../index'
+import TestVfs from './TestVfs'
 import { DOMEvent } from './testHelpers'
-import { validateXML } from 'texture-xml-utils'
 
 export function setCursor (editor, path, pos) {
   let property = _getTextPropertyForPath(editor, path)
@@ -107,7 +104,7 @@ export function breakText (editor) {
 }
 
 export function applyNOP (editorSession) {
-  editorSession.applyChange(new DocumentChange([new ObjectOperation({ type: 'NOP' })], {}, {}), {})
+  editorSession._commit(new DocumentChange([new ObjectOperation({ type: 'NOP' })], {}, {}), {})
 }
 
 export function toUnix (str) {
@@ -115,25 +112,13 @@ export function toUnix (str) {
 }
 
 export function createTestApp (options = {}) {
-  const validateOnSave = !options.noValidationOnSave
-
   class App extends TextureWebApp {
-    _getStorage () {
+    _getStorage (storageType) {
       let _vfs = options.vfs || vfs
       // TODO: find out if we still need options.root, because it looks like
       // we are using options.rootDir
-      // HACK: hard-coding the data location for different test-scenarios
-      // 1. when running nodejs tests, then the data is in '../data'
-      // 2. when running tests in electron, the data is in '../../data'
-      let _rootFolder = options.root || options.rootDir
-      if (!_rootFolder) {
-        if (platform.inElectron) {
-          _rootFolder = '../../data/'
-        } else {
-          _rootFolder = '../data/'
-        }
-      }
-      return new VfsStorageClient(_vfs, _rootFolder, options)
+      let _rootFolder = options.root || options.rootDir || '../data/'
+      return new VfsStorageClient(_vfs, _rootFolder)
     }
 
     willUpdateState (newState) {
@@ -143,66 +128,20 @@ export function createTestApp (options = {}) {
         this.emit('archive:failed', newState.error)
       }
     }
-
-    _save (cb) {
-      return super._save((err, rawArchiveUpdate) => {
-        if (validateOnSave) {
-          if (!err && rawArchiveUpdate) {
-            let changedResourceNames = Object.keys(rawArchiveUpdate.resources)
-            for (let resourceName of changedResourceNames) {
-              if (!resourceName.endsWith('.xml')) continue
-              let xmlStr = rawArchiveUpdate.resources[resourceName].data
-              let xmlDom = DefaultDOMElement.parseXML(xmlStr)
-              let doctype = xmlDom.getDoctype()
-              if (doctype && /JATS/.exec(doctype.publicId)) {
-                let result = validateXML(TextureJATS, xmlDom)
-                if (!result.ok) {
-                  console.error('Texture generated invalid JATS:' + result.errors)
-                  throw new Error('Texture generated invalid JATS')
-                }
-              }
-            }
-          }
-        }
-        cb(err, rawArchiveUpdate)
-      })
-    }
   }
   return App
 }
 
-const JATS_SHOULD_BE_VALID = 'current JATS should be valid.'
-
-export function ensureValidJATS (t, app) {
-  // Note: in the test suite we use VFS as storage which works
-  // synchronously, even if the API is asynchronous (for the real storage impls).
-  app._save(err => {
-    t.notOk(Boolean(err), JATS_SHOULD_BE_VALID)
-  })
-}
-
-export function getTestVfsRootDir () {
-  // ATTENTION: these are hard-coded according to the different
-  // test builds we are using
-  // in the browser test-suite we bundle assets into an extra 'test' folder
-  // in electron we can access the original files directly via relative path to the root
-  if (platform.inElectron) {
-    return '../../test/fixture/'
-  } else {
-    return './test/fixture/'
-  }
-}
-
 export const LOREM_IPSUM = {
   vfs: TEST_VFS,
-  rootDir: getTestVfsRootDir(),
+  rootDir: './tests/fixture/',
   archiveId: 'lorem-ipsum'
 }
 
 export function fixture (archiveId) {
   return {
     vfs: TEST_VFS,
-    rootDir: getTestVfsRootDir(),
+    rootDir: './tests/fixture/',
     archiveId
   }
 }
@@ -215,7 +154,7 @@ export function setupTestVfs (mainVfs, archiveId) {
       data[path] = mainVfs._data[path]
     }
   }
-  return new Vfs(data)
+  return new TestVfs(data)
 }
 
 // creates a vfs instance that contains a standard manifest
@@ -224,16 +163,19 @@ export function createTestVfs (seedXML) {
     "test/manifest.xml": "<dar>\n  <documents>\n    <document id=\"manuscript\" type=\"article\" path=\"manuscript.xml\" />\n  </documents>\n  <assets>\n  </assets>\n</dar>\n", //eslint-disable-line
     "test/manuscript.xml": seedXML, //eslint-disable-line
   }
-  return new Vfs(data)
+  return new TestVfs(data)
 }
 
 export function openManuscriptEditor (app) {
   let articlePanel = app.find('.sc-article-panel')
+  articlePanel.send('updateViewName', 'manuscript')
   return articlePanel.find('.sc-manuscript-editor')
 }
 
 export function openMetadataEditor (app) {
-  throw new Error('This has been removed!')
+  let articlePanel = app.find('.sc-article-panel')
+  articlePanel.send('updateViewName', 'metadata')
+  return articlePanel.find('.sc-metadata-editor')
 }
 
 export function getApi (editor) {
@@ -245,15 +187,21 @@ export function getEditorSession (editor) {
 }
 
 export function getSelection (editor) {
-  return editor.context.editorState.selection
+  return editor.context.appState.selection
 }
 
 export function getSelectionState (editor) {
-  return editor.context.editorState.selectionState
+  return editor.context.appState.selectionState
+}
+
+export function getCurrentViewName (editor) {
+  const articlePanel = editor.context.articlePanel
+  const articlePanelState = articlePanel.getState()
+  return articlePanelState.viewName
 }
 
 export function getDocument (editor) {
-  return editor.context.editorState.document
+  return editor.context.appState.document
 }
 
 export function loadBodyFixture (editor, xml) {
@@ -281,27 +229,6 @@ export class PseudoFileEvent extends DOMEvent {
   }
 }
 
-export function startEditMetadata (editor) {
-  editor.send('startWorkflow', 'edit-metadata-workflow')
-  let modalEditor = editor.find('.sc-modal-dialog .se-body > .se-content')
-  return modalEditor
-}
-
-export function getModalEditor (mainEditor) {
-  return mainEditor.find('.sc-modal-dialog .se-body > .se-content')
-}
-
-export function closeModalEditor (modalEditor) {
-  modalEditor.send('close')
-}
-
-export function getModalEditorSession (editor) {
-  let modal = editor.find('.sc-modal-dialog .se-body > .se-content')
-  if (modal) {
-    return modal.context.editorSession
-  }
-}
-
 export class PseudoDropEvent extends DOMEvent {
   constructor (name = 'test.png', type = 'image/png') {
     super()
@@ -312,16 +239,14 @@ export class PseudoDropEvent extends DOMEvent {
   }
 }
 
-export const PSEUDO_FILE_CONTENT = 'abc'
-
 export function createPseudoFile (name, type) {
   let blob
   if (platform.inBrowser) {
-    blob = new Blob([PSEUDO_FILE_CONTENT], { type })
+    blob = new Blob(['abc'], { type })
     blob.name = name
   // FIXME: do something real in NodeJS
   } else {
-    blob = { name, type, data: PSEUDO_FILE_CONTENT }
+    blob = { name, type }
   }
   return blob
 }
@@ -346,10 +271,6 @@ export function findParent (el, selector) {
     }
     parent = parent.getParent()
   }
-}
-
-export function executeCommand (editor, commandName, params) {
-  editor.send('executeCommand', commandName, params)
 }
 
 export function clickUndo (editor) {
@@ -532,7 +453,7 @@ export const EMPTY_META = `
 
 export function createJATSFixture ({ front = EMPTY_META, body = '', back = '' }) {
   return `<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE article PUBLIC "${DEFAULT_JATS_SCHEMA_ID}" "${DEFAULT_JATS_DTD}">
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving DTD v1.0 20120330//EN" "JATS-journalarchiving.dtd">
 <article xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:ali="http://www.niso.org/schemas/ali/1.0">
   <front>
     ${front}
@@ -544,20 +465,4 @@ export function createJATSFixture ({ front = EMPTY_META, body = '', back = '' })
     ${back}
   </back>
 </article>`
-}
-
-export async function blob2string (blob) {
-  if (platform.inBrowser) {
-    let str = await (new Response(blob)).text()
-    return str
-  } else {
-    if (blob instanceof Buffer) {
-      // in nodejs we use buffers instead of blobs
-      let buffer = blob
-      return buffer.toString('utf8')
-    } else {
-      // otherwise we assume that this is a pseudo blob created with createPseudoFile
-      return blob.data
-    }
-  }
 }

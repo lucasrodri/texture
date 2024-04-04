@@ -52,6 +52,7 @@ export default class ToolGroup extends Component {
   }
 
   _renderLabel ($$) {
+    // EXPERIMENTAL: showing a ToolGroup label an
     const { style, label } = this.props
     if (style === 'descriptive' && label) {
       const SeparatorClass = this.getComponent('tool-separator')
@@ -140,7 +141,6 @@ export default class ToolGroup extends Component {
       case 'switcher': {
         return this._deriveGroupState(item, commandStates)
       }
-      case 'custom':
       case 'separator':
       case 'spacer': {
         return { item }
@@ -178,12 +178,20 @@ export default class ToolGroup extends Component {
           ToolClass = this.getComponent('tool-group')
           break
         }
+        case 'prompt': {
+          ToolClass = this.getComponent('tool-prompt')
+          break
+        }
         case 'separator': {
           ToolClass = this.getComponent('tool-separator')
           break
         }
         case 'spacer': {
           ToolClass = this.getComponent('tool-spacer')
+          break
+        }
+        case 'switcher': {
+          ToolClass = this.getComponent('tool-switcher')
           break
         }
         default: {

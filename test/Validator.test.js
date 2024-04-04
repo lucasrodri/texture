@@ -1,17 +1,17 @@
 import { test } from 'substance-test'
-import { getApi, openMenuAndFindTool, startEditMetadata } from './shared/integrationTestHelpers'
+import { openMetadataEditor, getApi, openMenuAndFindTool } from './shared/integrationTestHelpers'
 import setupTestApp from './shared/setupTestApp'
 
-const ADD_AUTHOR_SELECTOR = '.sm-add-author'
+const INSERT_AUTHOR_SELECTOR = '.sm-insert-author'
 
 test('Validator: disable body container editing', t => {
-  let { editor } = setupTestApp(t, { archiveId: 'blank' })
-  let metadataEditor = startEditMetadata(editor)
-  getApi(metadataEditor)._loadSettings({
+  let { app } = setupTestApp(t, { archiveId: 'blank' })
+  let editor = openMetadataEditor(app)
+  getApi(editor)._loadSettings({
     'person.givenNames': { required: true },
     'person.surname': { required: true }
   })
-  openMenuAndFindTool(metadataEditor, 'insert', ADD_AUTHOR_SELECTOR).click()
+  openMenuAndFindTool(editor, 'insert', INSERT_AUTHOR_SELECTOR).click()
   // there should be only two fields visible: givenNames, and surnace
   // the others being optional should be hidden away
   let personCard = editor.find('.sc-card.sm-person')

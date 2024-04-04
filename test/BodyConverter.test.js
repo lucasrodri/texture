@@ -1,9 +1,9 @@
 import { test } from 'substance-test'
 import { DefaultDOMElement, uuid } from 'substance'
 import {
+  InternalArticleDocument, InternalArticleSchema,
   createJatsImporter, createJatsExporter, createEmptyJATS
-} from 'substance-texture'
-import { createEmptyArticle } from './shared/testHelpers'
+} from '../index'
 
 const FLAT = `
 <body id="body">
@@ -138,7 +138,7 @@ test('BodyConverter: export nested sections', t => {
 function _importBody (bodyEl) {
   // TODO: create a minimal document, and the JATS importer
   // then run the converter and see if the body node has the proper content
-  let doc = createEmptyArticle()
+  let doc = InternalArticleDocument.createEmptyArticle(InternalArticleSchema)
   let importer = createJatsImporter(doc)
   // ATTENTION: same as in the real jats2internal converter we must use a temporary id
   // here, because the body node already exists

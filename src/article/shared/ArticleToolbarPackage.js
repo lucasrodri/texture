@@ -4,6 +4,17 @@ export default {
   configure (config) {
     config.addToolPanel('toolbar', [
       {
+        name: 'mode',
+        type: 'switcher',
+        style: 'descriptive',
+        hideDisabled: true,
+        displayActiveCommand: true,
+        items: [
+          { type: 'command', name: 'open-manuscript', label: 'open-manuscript', icon: 'manuscript' },
+          { type: 'command', name: 'open-metadata', label: 'open-metadata', icon: 'metadata' }
+        ]
+      },
+      {
         name: 'document-tools',
         type: 'group',
         style: 'minimal',
@@ -65,9 +76,13 @@ export default {
             type: 'group',
             label: 'metadata',
             items: [
-              { type: 'command', name: 'add-author', label: 'author' },
-              { type: 'command', name: 'add-affiliation', label: 'affiliation' },
-              { type: 'command', name: 'add-reference', label: 'reference' }
+              { type: 'command', name: 'insert-author', label: 'author' },
+              { type: 'command', name: 'insert-editor', label: 'editor' },
+              { type: 'command', name: 'insert-group', label: 'group' },
+              { type: 'command', name: 'insert-organisation', label: 'affiliation' },
+              { type: 'command', name: 'insert-funder', label: 'funder' },
+              { type: 'command', name: 'insert-keyword', label: 'keyword' },
+              { type: 'command', name: 'insert-subject', label: 'subject' }
             ]
           }
         ]
@@ -103,6 +118,17 @@ export default {
         type: 'spacer'
       },
       {
+        name: 'mobile-mode',
+        type: 'dropdown',
+        style: 'descriptive',
+        hideDisabled: false,
+        displayActiveCommand: true,
+        items: [
+          { type: 'command', name: 'open-manuscript', label: 'open-manuscript', icon: 'manuscript' },
+          { type: 'command', name: 'open-metadata', label: 'open-metadata', icon: 'metadata' }
+        ]
+      },
+      {
         name: 'context-tools',
         type: 'dropdown',
         style: 'descriptive',
@@ -110,7 +136,6 @@ export default {
         hideDisabled: true,
         alwaysVisible: true,
         items: [
-          { type: 'command', name: 'edit-metadata', label: 'edit-metadata' },
           {
             type: 'group',
             name: 'table',
@@ -160,11 +185,11 @@ export default {
           },
           {
             type: 'group',
-            name: 'metadata-fields',
+            name: 'custom-metadata-fields',
             style: 'descriptive',
             label: 'metadata-field-tools',
             items: [
-              { type: 'command-group', name: 'metadata-fields' }
+              { type: 'command-group', name: 'custom-metadata-fields' }
             ]
           },
           {
@@ -193,14 +218,6 @@ export default {
           },
           {
             type: 'group',
-            name: 'entities',
-            style: 'descriptive',
-            items: [
-              { type: 'command-group', name: 'entities' }
-            ]
-          },
-          {
-            type: 'group',
             name: 'collection',
             style: 'descriptive',
             items: [
@@ -224,9 +241,9 @@ export default {
           { type: 'command-group', name: 'footnote' },
           { type: 'command-group', name: 'author' },
           { type: 'command-group', name: 'reference' },
-          { type: 'command-group', name: 'entities' },
+          { type: 'command-group', name: 'collection' },
           { type: 'command-group', name: 'list' },
-          { type: 'command-group', name: 'metadata-fields' }
+          { type: 'command-group', name: 'custom-metadata-fields' }
         ]
       }
     ])
@@ -262,6 +279,14 @@ export default {
     config.addLabel('underline', 'Underline')
     // List tools labels
     config.addLabel('list-tools', 'List')
+    config.addLabel('toggle-unordered-list', {
+      en: 'Bulleted list',
+      de: 'Liste'
+    })
+    config.addLabel('toggle-ordered-list', {
+      en: 'Numbered list',
+      de: 'Aufzählung'
+    })
     config.addLabel('indent-list', {
       en: 'Increase indentation',
       de: 'Einrückung vergrößern'
@@ -272,6 +297,7 @@ export default {
     })
     // Insert tools labels
     config.addLabel('insert', 'Insert')
+    config.addLabel('figure', 'Figure')
     config.addLabel('table', 'Table')
     config.addLabel('block-quote', 'Block Quote')
     config.addLabel('equation', 'Equation')
@@ -290,6 +316,11 @@ export default {
     config.addLabel('reference', 'Reference')
     config.addLabel('author', 'Author')
     config.addLabel('editor', 'Editor')
+    config.addLabel('group', 'Group')
+    config.addLabel('affiliation', 'Affiliation')
+    config.addLabel('funder', 'Funder')
+    config.addLabel('keyword', 'Keyword')
+    config.addLabel('subject', 'Subject')
     // Table tools labels
     config.addLabel('table-tools', 'Table')
     config.addLabel('insert-rows-above', {
@@ -352,5 +383,7 @@ export default {
     // Mode
     config.addLabel('mode', 'Mode')
     config.addLabel('mobile-mode', 'Mode')
+    config.addLabel('open-manuscript', 'Manuscript')
+    config.addLabel('open-metadata', 'Details')
   }
 }

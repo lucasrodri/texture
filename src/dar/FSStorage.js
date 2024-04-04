@@ -3,13 +3,12 @@ import { platform } from 'substance'
 import readArchive from './readArchive'
 import writeArchive from './writeArchive'
 import cloneArchive from './cloneArchive'
-import _require from './_require'
 
 // FIXME: this file should only get bundled in commonjs version
 let fs, path
 if (platform.inNodeJS || platform.inElectron) {
-  fs = _require('fs')
-  path = _require('path')
+  fs = require('fs')
+  path = require('path')
 }
 
 /*

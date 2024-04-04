@@ -2,7 +2,7 @@ import { parseKeyCombo, DefaultDOMElement, getRangeFromMatrix, isArray, flattenO
 import { test } from 'substance-test'
 import {
   TableComponent, tableHelpers
-} from 'substance-texture'
+} from '../index'
 import { getMountPoint, DOMEvent, ClipboardEventData } from './shared/testHelpers'
 import setupTestArticleSession from './shared/setupTestArticleSession'
 import {
@@ -1084,13 +1084,18 @@ for (let i = 0, count = 1; i < 10; i++) {
 // not unit testing the TableComponent testing the TableComponent used in the ManuscriptEditor
 function _setupEditorWithOneTable (t) {
   let table
-  let { context, editorSession, doc } = setupTestArticleSession({
+  let res = setupTestArticleSession({
     seed: doc => {
       table = tableHelpers.createTableFromTabularData(doc, TABLE_DATA, 't')
       doc.find('body').append(table)
     }
   })
-  return { context, editorSession, doc, table }
+  return {
+    context: res.context,
+    editorSession: res.editorSession,
+    doc: res.doc,
+    table
+  }
 }
 
 function _getCellRange (matrix, startRow, startCol, endRow, endCol) {

@@ -2,7 +2,6 @@
   display: flex;
   /*flex-wrap: nowrap;*/
   padding: 2px;
-  justify-content: center;
 }
 
 .sc-toolbar > .se-active-tools .sc-tool-group {

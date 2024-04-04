@@ -95,10 +95,7 @@ export default class Tool extends Component {
   _getKeyboardShortcut () {
     const name = this.props.item.name
     const config = this.context.config
-    let entry = config.getKeyboardShortcutsByCommandName(name)
-    if (entry) {
-      return entry.label
-    }
+    return config.getKeyboardShortcutsByCommandName(name)
   }
 
   _getTooltipText () {

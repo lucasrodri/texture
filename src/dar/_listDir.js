@@ -1,5 +1,3 @@
-import _require from './_require'
-
 const DOT = '.'.charCodeAt(0)
 
 /*
@@ -15,8 +13,8 @@ export default async function listDir (dir, opts = {}) {
 }
 
 function _list (dir, opts, done) {
-  let fs = opts.fs || _require('fs')
-  let path = opts.path || _require('path')
+  let fs = opts.fs || require('fs')
+  let path = opts.path || require('path')
   let results = []
   fs.readdir(dir, (err, list) => {
     if (err) return done(err)

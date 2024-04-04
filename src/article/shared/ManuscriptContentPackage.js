@@ -1,27 +1,45 @@
 import { AnnotationComponent } from '../../kit'
 
-import {
-  AbstractComponent, AuthorsListComponent, BlockFormulaComponent,
-  BlockQuoteComponent, BoldComponent, BreakComponent, MetadataFieldComponent,
-  ExternalLinkComponent, FigureComponent, FigurePanelComponent, FootnoteComponent,
-  HeadingComponent, InlineFormulaComponent, InlineGraphicComponent, ItalicComponent, ListComponent,
-  ListItemComponent, ManuscriptComponent, ParagraphComponent, ReferenceComponent,
-  ReferenceListComponent, SectionLabel, SubscriptComponent, SuperscriptComponent,
-  TableComponent, TableFigureComponent, UnsupportedInlineNodeComponent, XrefComponent,
-  UnsupportedNodeComponent, GraphicComponent, SupplementaryFileComponent,
-  DefaultNodeComponent, ModelPreviewComponent
-} from '../components'
+import AbstractComponent from './AbstractComponent'
+import AuthorsListComponent from './AuthorsListComponent'
+import BreakComponent from './BreakComponent'
+import BlockFormulaComponent from './BlockFormulaComponent'
+import BlockQuoteComponent from './BlockQuoteComponent'
+import CustomMetadataFieldComponent from './CustomMetadataFieldComponent'
+import ExternalLinkComponent from './ExternalLinkComponent'
+import FigureComponent from './FigureComponent'
+import FigurePanelComponent from './FigurePanelComponent'
+import FootnoteComponent from './FootnoteComponent'
+import HeadingComponent from './HeadingComponent'
+import InlineFormulaComponent from './InlineFormulaComponent'
+import InlineGraphicComponent from './InlineGraphicComponent'
+import ListComponent from './ListComponent'
+import ListItemComponent from './ListItemComponent'
+import ManuscriptComponent from './ManuscriptComponent'
+import ModelPreviewComponent from './ModelPreviewComponent'
+import ParagraphComponent from './ParagraphComponent'
+import ReferenceComponent from './ReferenceComponent'
+import ReferenceListComponent from './ReferenceListComponent'
+import SectionLabel from './SectionLabel'
+import TableComponent from './TableComponent'
+import TableFigureComponent from './TableFigureComponent'
+import UnsupportedNodeComponent from './UnsupportedNodeComponent'
+import UnsupportedInlineNodeComponent from './UnsupportedInlineNodeComponent'
+import XrefComponent from './XrefComponent'
+import DefaultNodeComponent from './DefaultNodeComponent'
+import GraphicComponent from './GraphicComponent'
+import SupplementaryFileComponent from './SupplementaryFileComponent'
 
 export default {
   name: 'manuscript-content',
   configure (config) {
     config.addComponent('abstract', AbstractComponent)
     config.addComponent('authors-list', AuthorsListComponent)
-    config.addComponent('bold', BoldComponent)
+    config.addComponent('bold', AnnotationComponent)
     config.addComponent('block-formula', BlockFormulaComponent)
     config.addComponent('block-quote', BlockQuoteComponent)
     config.addComponent('break', BreakComponent)
-    config.addComponent('metadata-field', MetadataFieldComponent)
+    config.addComponent('custom-metadata-field', CustomMetadataFieldComponent)
     config.addComponent('external-link', ExternalLinkComponent)
     config.addComponent('figure', FigureComponent)
     config.addComponent('figure-panel', FigurePanelComponent)
@@ -29,7 +47,7 @@ export default {
     config.addComponent('heading', HeadingComponent)
     config.addComponent('inline-formula', InlineFormulaComponent)
     config.addComponent('inline-graphic', InlineGraphicComponent)
-    config.addComponent('italic', ItalicComponent)
+    config.addComponent('italic', AnnotationComponent)
     config.addComponent('list', ListComponent)
     config.addComponent('list-item', ListItemComponent)
     config.addComponent('manuscript', ManuscriptComponent)
@@ -41,8 +59,8 @@ export default {
     config.addComponent('section-label', SectionLabel)
     config.addComponent('small-caps', AnnotationComponent)
     config.addComponent('strike-through', AnnotationComponent)
-    config.addComponent('subscript', SubscriptComponent)
-    config.addComponent('superscript', SuperscriptComponent)
+    config.addComponent('subscript', AnnotationComponent)
+    config.addComponent('superscript', AnnotationComponent)
     config.addComponent('table', TableComponent)
     config.addComponent('table-figure', TableFigureComponent)
     config.addComponent('underline', AnnotationComponent)

@@ -1,6 +1,5 @@
 import listDir from './_listDir'
 import isDocumentArchive from './_isDocumentArchive'
-import _require from './_require'
 
 // these extensions are considered to have text content
 const TEXTISH = ['txt', 'html', 'xml', 'json']
@@ -53,7 +52,7 @@ export default async function readArchive (archiveDir, opts = {}) {
   ```
 */
 async function _getFileRecord (fileEntry, opts) {
-  let fs = opts.fs || _require('fs')
+  let fs = opts.fs || require('fs')
   // for text files load content
   // for binaries use a url
   let record = {

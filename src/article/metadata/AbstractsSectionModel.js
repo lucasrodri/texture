@@ -1,6 +1,5 @@
 /**
- * This is an artificial model that takes all sorts of abstracts from the document model
- * so that they can be represented as individual cards
+ * An artificial collection model which contains main abstract and custom abtracts
  */
 export default class AbstractsSectionModel {
   constructor (api) {
@@ -26,7 +25,9 @@ export default class AbstractsSectionModel {
 
   getItems () {
     let doc = this._api.getDocument()
-    return doc.resolve(['article', 'customAbstracts'])
+    return [doc.get('abstract')].concat(
+      doc.resolve(['article', 'customAbstracts'])
+    )
   }
 
   get length () {

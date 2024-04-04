@@ -6,7 +6,7 @@ export default class CollectionModel extends ValueModel {
   constructor (api, path, targetTypes) {
     super(api, path)
 
-    this._targetTypes = targetTypes
+    this._targetTypes = new Set(targetTypes)
   }
 
   get type () { return 'collection' }
@@ -21,20 +21,17 @@ export default class CollectionModel extends ValueModel {
   }
 
   addItem (item) {
-    // TODO: instead of requiring a bunch of low-level API
-    // methods we should instead introduce a Collection API
-    // where these low-level things are implemented
-    // TODO: things brings me then to the point, questioning
-    // the benefit of a general CollectionModel. Probably this
-    // should be moved into Article API land.
     this._api._appendChild(this._path, item)
   }
 
-  removeItem (item) {
-    this._api._removeChild(this._path, item.id)
-  }
-
   get length () { return this.getValue().length }
+
+  // TODO: this is not used ATM
+  // we should either remove both addItem() and removeItem()
+  // or use it consistently
+  // removeItem (item) {
+  //   this._api._removeChild(this._path, item)
+  // }
 
   getValue () {
     return super.getValue() || []

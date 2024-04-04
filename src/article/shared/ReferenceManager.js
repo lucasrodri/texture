@@ -3,8 +3,8 @@ import AbstractCitationManager from './AbstractCitationManager'
 import NumberedLabelGenerator from './NumberedLabelGenerator'
 
 export default class ReferenceManager extends AbstractCitationManager {
-  constructor (editorSession, config) {
-    super(editorSession, 'bibr', ['reference'], new NumberedLabelGenerator(config))
+  constructor (documentSession, config) {
+    super(documentSession, 'bibr', ['reference'], new NumberedLabelGenerator(config))
     // compute initial labels
     this._updateLabels('initial')
   }

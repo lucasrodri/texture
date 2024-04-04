@@ -11,11 +11,11 @@ export default class ManyRelationshipComponent extends ValueComponent {
     // e.g. the creation of a new target, or the deletion of an existing one
     // In this case the selection will be out of sync, and hopefully the implementation does react correctly
     // TODO: make sure that this is the case
-    this.context.editorState.addObserver(['document'], this._rerenderOnModelChangeIfNecessary, this, { stage: 'render' })
+    this.context.appState.addObserver(['document'], this._rerenderOnModelChangeIfNecessary, this, { stage: 'render' })
   }
 
   dispose () {
-    this.context.editorState.removeObserver(this)
+    this.context.appState.removeObserver(this)
   }
 
   render ($$) {
@@ -69,7 +69,7 @@ export default class ManyRelationshipComponent extends ValueComponent {
   }
 
   _toggleOverlay () {
-    const appState = this.context.editorState
+    const appState = this.context.appState
     let overlayId = appState.overlayId
     let modelId = this.props.model.id
     if (overlayId === modelId) {

@@ -71,6 +71,12 @@ export default class MultiSelectInput extends OverlayMixin(Component) {
     return this.getParent().getAvailableOptions()
   }
 
+  // toggleOption (event) {
+  //   event.preventDefault()
+  //   event.stopPropagation()
+  //   super._toggleOverlay()
+  // }
+
   _stopAndPreventDefault (event) {
     event.stopPropagation()
     event.preventDefault()
@@ -82,7 +88,7 @@ export default class MultiSelectInput extends OverlayMixin(Component) {
   }
 
   _onOverlayIdHasChanged () {
-    let overlayId = this.context.editorState.overlayId
+    let overlayId = this.context.appState.overlayId
     let id = this._getOverlayId()
     let needUpdate = false
     if (this.state.isExpanded) {
