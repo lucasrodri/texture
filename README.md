@@ -18,14 +18,18 @@ You can run Texture with Docker. This is the easiest way to get started.
 First, build the Docker image.
 
 ```bash	
-$ docker build -t texture .
+$ docker build -t lucasrodri/texture .
 ```
 
 Then, run the Docker container.
 
 ```bash
-$ docker run -d -p 4000:4000 texture
+$ docker run -d -p 4000:4000 lucasrodri/texture
 ```
+Or if you want to run the container from docker hub:
+
+```bash
+$ docker run -d lucasrodri/texture
 
 ## Install
 

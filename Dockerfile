@@ -13,5 +13,7 @@ RUN npm install
 # Copie o restante dos arquivos para o diretório de trabalho, garantindo a propriedade correta.
 COPY . .
 
+EXPOSE 4000
+
 # Comando para rodar o aplicativo usando npm start conforme especificado no seu package.json
 CMD [ "npm", "start" ]
